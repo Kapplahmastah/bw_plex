@@ -76,16 +76,18 @@ def video_frame_by_frame(path, offset=0, frame_range=None, step=1, reverse=False
 
     if frame_range:
         fps = cap.get(cv2.CAP_PROP_FPS)
+
         duration = cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps
         duration = int(duration)
         end = duration
         start = offset
 
-        frame_range = ((i * fps) for i in range(start, end, step))
+        frame_range = (i * fps for i in range(start, end, step))
         for fr in frame_range:
-            #print('framenumber is at', sec_to_hh_mm_ss(fr / fps))
+            #print('framenumber %s is at %s' % (fr, sec_to_hh_mm_ss(fr / fps)))
             # FR is the framenumber
-            ret, frame = cap.read(fr)
+            cap.set(cv2.CAP_PROP_POS_FRAMES, fr)
+            ret, frame = cap.read()
             if ret:
                 yield frame
 
@@ -99,13 +101,16 @@ def video_frame_by_frame(path, offset=0, frame_range=None, step=1, reverse=False
 
         while cap.isOpened():
             ret, frame = cap.read()
-            #pos = cap.get(cv2.CAP_PROP_POS_MSEC)
-            #print(pos / 1000)
+            # pos = cap.get(cv2.CAP_PROP_POS_MSEC)
+            # print(pos / 1000)
 
             if ret:
                 yield frame
+            else:
+                break
 
     cap.release()
+    cv2.destroyAllWindows()
 
 
 def calc_success(rectangles, img_height, img_width, success=0.9):
@@ -256,6 +261,7 @@ def find_credits(path, offset=0, fps=None, duration=None, check=7, frame_range=T
 
 
     """
+    import cv2
     frames = []
     start = -1
     end = -1
@@ -268,15 +274,22 @@ def find_credits(path, offset=0, fps=None, duration=None, check=7, frame_range=T
         cap.release()
 
     for i, frame in enumerate(video_frame_by_frame(path, offset=offset, frame_range=frame_range)):
+        #print(i)
         if frame is not None:
-            #print(frame)
             recs = locate_text(frame, debug=False)
 
             if recs:
                 frames.append(i)
 
+            #print(frames)
+
             if len(frames) >= check:
-                start = offset + frames[0] * fps
+                if frame_range:
+                    # check this, seems funky.
+                    # add one since step is 1 sec and python is zero indexed.
+                    start = offset + (frames[0] + 1)
+                else:
+                    start = offset + frames[0] * fps
                 return start, end  # Fix end.
 
     return -1, -1
@@ -296,6 +309,7 @@ def cmd(path, c, debug, profile, offset):
         files = glob.glob(path)
 
     d = {}
+    print(files)
 
     for f in files:
         if f.endswith(image_type):

@@ -10,4 +10,6 @@ sys.path.insert(1, fp)
 
 import bw_plex.plex as plex
 import bw_plex.misc as misc
+import bw_plex.credits as credits
 
+TEST_DATA = os.path.join(os.path.dirname(__file__), 'test_data')
