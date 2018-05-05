@@ -26,8 +26,8 @@ def test_extract_text():
 
 def test_find_credits2(video_file):
     start, end = credits.find_credits(video_file, offset=3, frame_range=False, check=7)
-    assert math.floor(start) == 7
-    assert math.floor(end) == 13
+    assert math.floor(start) == 3
+    assert math.floor(end) == 3
     print('start', start)
     print('end', end)
 
