@@ -58,13 +58,14 @@ def extract_text(img, lang='eng', encoding='utf-8'):
     return pytesseract.image_to_string(img, lang=lang).encode(encoding, 'ignore')
 
 
-def video_frame_by_frame(path, offset=0, frame_range=None, step=1, reverse=False):
+def video_frame_by_frame(path, offset=0, frame_range=None, step=1):
     """ Returns a video files frame by frame.by
 
         Args:
             path (str): path to the video file
             offset (int): Should we start from offset inside vid
             frame_range (list, None): List of frames numbers we should grab.
+            step(int): check every n, note this is ignored if frame_range is False
 
         Returns:
             numpy.ndarray
@@ -298,8 +299,8 @@ def find_credits(path, offset=0, fps=None, duration=None, check=7, step=1, frame
 
     if frames:
         LOG.debug(frames)
-        start = offset + min([i for i in frames if i >= offset]) / 1000
-        end = offset + max([i for i in frames if i >= offset]) / 1000
+        start = min(frames) / 1000
+        end = max(frames) / 1000
 
     return start, end
 
