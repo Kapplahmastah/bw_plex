@@ -264,6 +264,8 @@ def find_credits(path, offset=0, fps=None, duration=None, check=7, step=1, frame
             duration(None, int): Duration of the vfile in seconds.
             check(int): Stop after n frames with text, set a insane high number to check all.
                         end is not correct without this!
+            step(int): only use every n frame
+            frame_range(bool). default true, precalc the frames and only check thous frames.
 
        Returns:
             1, 2
@@ -296,8 +298,8 @@ def find_credits(path, offset=0, fps=None, duration=None, check=7, step=1, frame
 
     if frames:
         LOG.debug(frames)
-        start = offset + min(frames) / 1000
-        end = offset + max(frames) / 1000
+        start = offset + min([i for i in frames if i >= offset]) / 1000
+        end = offset + max([i for i in frames if i >= offset]) / 1000
 
     return start, end
 
