@@ -150,7 +150,7 @@ def get_offset_end(vid, hashtable, check_if_missing=False):
          nhashraw, rank, min_time, max_time) in rslts:
             end_time = max_time * t_hop
             start_time = min_time * t_hop
-            LOG.info('Match %s rank %s aligntime %s theme song %s started at %s (%s) in ended at %s (%s)' % (tophitid, rank, 
+            LOG.info('Match %s rank %s aligntime %s theme song %s started at %s (%s) in ended at %s (%s)' % (tophitid, rank,
                 aligntime, hashtable.names[tophitid], start_time, to_time(start_time), end_time, to_time(end_time)))
 
     if len(rslts):
@@ -201,7 +201,7 @@ def calc_offset(final_video, final_audio, dev=7, cutoff=15):
     for video in reversed(final_video):
         for aud in final_audio:
             # Sometime times there are black shit the first 15 sec. lets skip that to remove false positives
-            if video[1] > cutoff:  # end time of black shit..
+            if video[1] >= cutoff:  # end time of black shit..
                 # if silence is within black shit its ok. Allow dev sec deviance.
                 if aud and video and abs(aud[0] - video[0]) <= dev and abs(aud[1] - video[0]) <= dev:
                     match_window.append(video)
@@ -383,6 +383,7 @@ def convert_and_trim_to_mp3(afile, fs=8000, trim=None, outfile=None):
 
     return outfile
 
+
 def search_tunes(name, rk, url=None):
     """Search televisontunes for a show theme song.
 
@@ -413,6 +414,7 @@ def search_tunes(name, rk, url=None):
 
     if url is None:
         res = requests.get('http://www.televisiontunes.com/search.php', params={'q': name})
+        LOG.debug(res.url)
         if res:
             soup = BeautifulSoup(res.text, 'html5lib')
 
@@ -428,7 +430,7 @@ def search_tunes(name, rk, url=None):
                         title = ''
 
                     # Many of the themes is just listed with the theme names, atm we are rather strict by checking
-                    # if a valid word is in the title, this is omitted many times, but we could check the read url and see if it was listed in 
+                    # if a valid word is in the title, this is omitted many times, but we could check the read url and see if it was listed in
                     # the id #ffx in baseurl + sr['href']
                     if sname.lower() == name.lower() and title and any([i for i in titles if i and i.lower() in title.lower()]):
                         result['%s__%s__%s' % (name, rk, int(time.time()))].append(real_url(baseurl + sr['href']))
