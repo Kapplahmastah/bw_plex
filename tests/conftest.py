@@ -13,3 +13,9 @@ import bw_plex.misc as misc
 import bw_plex.credits as credits
 
 TEST_DATA = os.path.join(os.path.dirname(__file__), 'test_data')
+
+
+@pytest.fixture()
+def video_file():
+    fp = os.path.join(TEST_DATA, 'out.mkv')
+    return fp

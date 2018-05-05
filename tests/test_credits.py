@@ -22,13 +22,22 @@ def _test_extract_text():
     assert credits.extract_text(fp) == b'A\n\nJOHN GOLDWYN\n\nPRODUCTION'
 
 
-def _test_find_credits():
-    fp = os.path.join(TEST_DATA, 'out.mkv')
+def _test_find_credits2(video_file):
+    #fp = os.path.join(TEST_DATA, 'out.mkv')
 
-    t = credits.find_credits(fp, offset=1)
+    t = credits.find_credits(video_file, offset=1)
+    print(t)##
+
+
+def test_find_credits(video_file):
+    #fp = os.path.join(TEST_DATA, 'out.mkv')
+
+    t = credits.find_credits(video_file, frame_range=True, check=9999)
     print(t)
 
 
-def test_video_frame_by_frame():
-    fp = os.path.join(TEST_DATA, 'out.mkv')
-    list(credits.video_frame_by_frame(fp, offset=50, frame_range=True))
+#def test_video_frame_by_frame():
+#    fp = os.path.join(TEST_DATA, 'out.mkv')
+#    t = list(credits.video_frame_by_frame(fp, offset=50, frame_range=True))
+#    print(t)
+

@@ -9,6 +9,7 @@ import sys
 import click
 import numpy as np
 
+from bw_plex import LOG
 from bw_plex.misc import sec_to_hh_mm_ss
 
 
@@ -82,14 +83,16 @@ def video_frame_by_frame(path, offset=0, frame_range=None, step=1, reverse=False
         end = duration
         start = offset
 
+        # Just yield very step frame and currect time.
         frame_range = (i * fps for i in range(start, end, step))
         for fr in frame_range:
-            #print('framenumber %s is at %s' % (fr, sec_to_hh_mm_ss(fr / fps)))
-            # FR is the framenumber
+            # Set the correct frame number to read.
             cap.set(cv2.CAP_PROP_POS_FRAMES, fr)
             ret, frame = cap.read()
             if ret:
-                yield frame
+                yield frame, cap.get(cv2.CAP_PROP_POS_MSEC)
+            else:
+                yield None, cap.get(cv2.CAP_PROP_POS_MSEC)
 
     else:
         if offset:
@@ -101,11 +104,10 @@ def video_frame_by_frame(path, offset=0, frame_range=None, step=1, reverse=False
 
         while cap.isOpened():
             ret, frame = cap.read()
-            # pos = cap.get(cv2.CAP_PROP_POS_MSEC)
-            # print(pos / 1000)
+            pos = cap.get(cv2.CAP_PROP_POS_MSEC)
 
             if ret:
-                yield frame
+                yield frame, pos
             else:
                 break
 
@@ -246,15 +248,22 @@ def locate_text(image, debug=False):
     return rectangles
 
 
-def find_credits(path, offset=0, fps=None, duration=None, check=7, frame_range=True):
-    """Find the start of the credits and end in a videofile.
+def find_credits(path, offset=0, fps=None, duration=None, check=7, step=1, frame_range=True):
+    """Find the start/end of the credits and end in a videofile.
+       This only check frames so if there is any silence in the video this is simply skipped as
+       opencv only handles videofiles.
+
+       use frame_range to so we only check frames every 1 sec.
+
+       # TODO just ffmepg to check for silence so we calculate the correct time? :(
 
        Args:
             path (str): path to the videofile
             offset(int): If given we should start from this one.
             fps(float?): fps of the video file
             duration(None, int): Duration of the vfile in seconds.
-            check(int): something.
+            check(int): Stop after n frames with text, set a insane high number to check all.
+                        end is not correct without this!
 
        Returns:
             1, 2
@@ -265,34 +274,32 @@ def find_credits(path, offset=0, fps=None, duration=None, check=7, frame_range=T
     frames = []
     start = -1
     end = -1
+    LOG.debug('Trying to find the credits for %s', path)
 
     if fps is None:
         # we can just grab the fps from plex.
-        import cv2
         cap = cv2.VideoCapture(path)
-        fps = cap.get(cv2.CAP_PROP_POS_MSEC)
+        fps = cap.get(cv2.CAP_PROP_FPS)
         cap.release()
 
-    for i, frame in enumerate(video_frame_by_frame(path, offset=offset, frame_range=frame_range)):
-        #print(i)
+    for i, (frame, millisec) in enumerate(video_frame_by_frame(path, offset=offset,
+                                                               step=step, frame_range=frame_range)):
+        LOG.debug('progress %s', millisec / 1000)
         if frame is not None:
             recs = locate_text(frame, debug=False)
 
             if recs:
-                frames.append(i)
-
-            #print(frames)
+                frames.append(millisec)
 
             if len(frames) >= check:
-                if frame_range:
-                    # check this, seems funky.
-                    # add one since step is 1 sec and python is zero indexed.
-                    start = offset + (frames[0] + 1)
-                else:
-                    start = offset + frames[0] * fps
-                return start, end  # Fix end.
+                break
 
-    return -1, -1
+    if frames:
+        LOG.debug(frames)
+        start = offset + min(frames) / 1000
+        end = offset + max(frames) / 1000
+
+    return start, end
 
 
 @click.command()
