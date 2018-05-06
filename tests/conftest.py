@@ -1,5 +1,6 @@
 import os
 import sys
+import tempfile
 
 import pytest
 
@@ -10,10 +11,18 @@ sys.path.insert(1, fp)
 
 # This is reimported by the tests.
 # Do not delete.
+
+import bw_plex
+# Change default folder so we dont mess up the users normal things..
+# This needs to deleted after all the tests are done.
+bw_plex.DEFAULT_FOLDER = os.path.join(tempfile.gettempdir(), 'bw_plex_test_root')
+if not os.path.exists(bw_plex.DEFAULT_FOLDER):
+    os.makedirs(bw_plex.DEFAULT_FOLDER)
+
+
 import bw_plex.plex as plex
 import bw_plex.misc as misc
 import bw_plex.credits as credits
-
 
 TEST_DATA = os.path.join(os.path.dirname(__file__), 'test_data')
 
