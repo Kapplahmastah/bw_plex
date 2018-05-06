@@ -24,10 +24,7 @@ def test_find_offset_ffmpeg(intro_file):
     # failes as find_offset_ffmpeg selects the intro, not the end of the intro..
 
 
-def test_download_theme_and_get_offset_end(monkeypatch, media, HT, intro_file, tmpdir):
-    # Just to make sure we dont save the themes at our normal location. In case tests are
-    # run locally.
-    #monkeypatch.setattr(misc, 'THEMES', tmpdir.realpath())
+def test_download_theme_and_get_offset_end(media, HT, intro_file):
     files = misc.download_theme(media, HT, theme_source='youtube', url='https://www.youtube.com/watch?v=BIqBQWB7IUM')
     assert len(files)
     assert len(HT.get_theme(media)) == 1
@@ -38,7 +35,6 @@ def test_download_theme_and_get_offset_end(monkeypatch, media, HT, intro_file, t
     start, end = misc.get_offset_end(intro_file, HT)
     assert math.floor(start) == 116
     assert math.floor(end) == 208
-
 
 
 def test_has_recap_audio(intro_file):
