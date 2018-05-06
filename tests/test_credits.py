@@ -24,15 +24,15 @@ def test_extract_text():
     assert credits.extract_text(fp) == b'A\n\nJOHN GOLDWYN\n\nPRODUCTION'
 
 
-def test_find_credits2(video_file):
-    start, end = credits.find_credits(video_file, offset=3, frame_range=False, check=7)
+def test_find_credits_frame_range_false(outro_file):
+    start, end = credits.find_credits(outro_file, offset=3, frame_range=False, check=7)
     assert math.floor(start) == 3
     assert math.floor(end) == 3
     print('start', start)
     print('end', end)
 
 
-def test_find_credits(video_file):
-    start, end = credits.find_credits(video_file, frame_range=True, check=9999)
+def test_find_credits(outro_file):
+    start, end = credits.find_credits(outro_file, frame_range=True, check=9999)
     assert math.floor(start) == 4.0
     assert math.floor(end) == 58
