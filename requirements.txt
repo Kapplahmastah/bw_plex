@@ -19,6 +19,7 @@ pocketsphinx
 SpeechRecognition
 tablib
 
+
 # Any more i have forgotten?
 # just pip until your have fixed the errors xD
 
